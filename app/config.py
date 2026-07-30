@@ -14,3 +14,5 @@ AZURE_OPENAI_ENDPOINT = os.getenv(
 AZURE_OPENAI_DEPLOYMENT = os.getenv(
     "AZURE_OPENAI_DEPLOYMENT"
 )
+
+# Git versioning test - first change
