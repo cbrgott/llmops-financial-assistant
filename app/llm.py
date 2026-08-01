@@ -34,6 +34,8 @@ def ask_llm(prompt: str):
             input=prompt
         )
 
+        print(response)
+
         latency = time.time() - start_time
 
         generation.update(
@@ -42,7 +44,10 @@ def ask_llm(prompt: str):
             },
             metadata={
                 "model": AZURE_OPENAI_DEPLOYMENT,
-                "latency_seconds": round(latency, 3)
+                "latency_seconds": round(latency, 3),
+                "input_tokens": response.usage.input_tokens,
+                "output_tokens": response.usage.output_tokens,
+                "total_tokens": response.usage.total_tokens
             }
         )
 
