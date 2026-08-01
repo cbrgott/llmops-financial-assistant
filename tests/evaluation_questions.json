@@ -1,0 +1,10 @@
+[
+    {
+        "question": "What is the company's ESG strategy?",
+        "expected_answer": "The company focuses on sustainability, governance, human capital, compliance, efficiency, innovation, stakeholder partnerships, and creating positive impact."
+    },
+    {
+        "question": "What are the key sustainability objectives?",
+        "expected_answer": "The objectives include compliance, human capital development, governance and risk management, efficiency, innovative products and processes, stakeholder partnerships, and sustainable societies."
+    }
+]

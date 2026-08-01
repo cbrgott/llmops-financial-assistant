@@ -55,7 +55,7 @@ def ask_rag(question: str):
                 for doc in documents
             )
 
-            logger.info(f"Context lengh: {len(context)} characters")
+            logger.info(f"Context length: {len(context)} characters")
 
             context_span.update(
                 output={
