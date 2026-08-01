@@ -1,9 +1,13 @@
 from app.retriever import retrieve_documents
 from app.llm import ask_llm
 from app.observability import langfuse
-
+from app.logger import logger
 
 def ask_rag(question: str):
+
+    logger.info(
+        f"Received question: {question}"
+    )
 
     with langfuse.start_as_current_observation(
         name="rag-request",
@@ -20,6 +24,10 @@ def ask_rag(question: str):
             documents = retrieve_documents(
                 question,
                 k=3
+            )
+
+            logger.info(
+                f"Retrieved documents: {len(documents)}"
             )
 
             retrieval_span.update(
@@ -46,6 +54,8 @@ def ask_rag(question: str):
                 doc.page_content
                 for doc in documents
             )
+
+            logger.info(f"Context lengh: {len(context)} characters")
 
             context_span.update(
                 output={
@@ -84,3 +94,7 @@ Question:
 
 
     return answer
+
+logger.info(
+    "Response generated successfully"
+)

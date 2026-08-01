@@ -1,6 +1,7 @@
 from openai import OpenAI
 from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 import time
+from app.logger import logger
 
 from app.pricing import (
     GPT5_MINI_INPUT_COST,
@@ -11,6 +12,7 @@ from app.config import (
     AZURE_OPENAI_ENDPOINT,
     AZURE_OPENAI_DEPLOYMENT
 )
+
 
 from app.observability import langfuse
 
@@ -39,8 +41,6 @@ def ask_llm(prompt: str):
             input=prompt
         )
 
-        print(response)
-
         latency = time.time() - start_time
 
         input_cost = (
@@ -54,6 +54,16 @@ def ask_llm(prompt: str):
         )
 
         total_cost = input_cost + output_cost
+
+        logger.info(
+            f"""
+        LLM generation completed |
+        Model: {AZURE_OPENAI_DEPLOYMENT} |
+        Tokens: {response.usage.total_tokens} |
+        Cost: {round(total_cost,8)} |
+        Latency: {round(latency,3)} seconds
+        """
+        )
 
         generation.update(
             output={
