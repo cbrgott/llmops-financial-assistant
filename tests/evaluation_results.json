@@ -1,0 +1,16 @@
+[
+    {
+        "question": "What is the company's ESG strategy?",
+        "expected_answer": "The company focuses on sustainability, governance, human capital, compliance, efficiency, innovation, stakeholder partnerships, and creating positive impact.",
+        "generated_answer": "Their medium‑term ESG strategy (implemented alongside the 2019 turnaround and driven by 12 management initiatives) focuses on three coverage areas:\n- Strengthening the current base\n- Expanding positive impact\n- Delivering measurable value to society, at scale\n\nIt is supported by key capabilities and sustainability objectives:\n- Compliance\n- Human capital\n- Governance and risk\n- Efficiency\n- Innovative products and processes\n- Stakeholder partnerships\n- Supporting sustainable societies\n\nRecent actions under the strategy include disposal of non-core businesses (sale of the starch and glucose business, Namibian packaging operation, and Tambankulu Estate) and progressing strategic transformational partnerships.",
+        "evaluation_score": 10,
+        "evaluation_reason": "The generated answer accurately includes all expected ESG focus areas (sustainability/supporting sustainable societies, governance, human capital, compliance, efficiency, innovation, stakeholder partnerships, and creating positive impact) and adds relevant contextual details and recent actions."
+    },
+    {
+        "question": "What are the key sustainability objectives?",
+        "expected_answer": "The objectives include compliance, human capital development, governance and risk management, efficiency, innovative products and processes, stakeholder partnerships, and sustainable societies.",
+        "generated_answer": "The key sustainability objective is to \"build our future by creating sustainable value for all our stakeholders.\"",
+        "evaluation_score": 2,
+        "evaluation_reason": "The answer is overly vague and high-level. It does not list or address the specific objectives (compliance, human capital development, governance and risk management, efficiency, innovation, stakeholder partnerships, sustainable societies) required by the expected answer."
+    }
+]
