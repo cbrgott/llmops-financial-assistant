@@ -38,10 +38,21 @@ def ask_rag(question: str):
 
 
         # 2. Build context
-        context = "\n\n".join(
-            doc.page_content
-            for doc in documents
-        )
+        with langfuse.start_as_current_observation(
+            name="build-context"
+        ) as context_span:
+
+            context = "\n\n".join(
+                doc.page_content
+                for doc in documents
+            )
+
+            context_span.update(
+                output={
+                    "context_length_characters": len(context),
+                    "chunks_used": len(documents)
+                }
+            )
 
 
         # 3. Create prompt
