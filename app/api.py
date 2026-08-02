@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from app.rag import ask_rag
 from app.schemas import QuestionRequest, AnswerResponse
 from app.guardrails import check_input_guardrail
+from app.observability import langfuse
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -34,8 +35,19 @@ def ask_question(request: QuestionRequest):
 
     try:
 
-        guardrail_result = check_input_guardrail(
-            request.question
+        with langfuse.start_as_current_observation(
+            name="guardrail-check",
+            input={
+                "question": request.question
+            }
+        ) as guardrail_span:
+
+            guardrail_result = check_input_guardrail(
+                request.question
+            )
+
+            guardrail_span.update(
+                output=guardrail_result
         )
 
         if not guardrail_result["allowed"]:
