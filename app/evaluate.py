@@ -2,6 +2,8 @@ import json
 
 from app.rag import ask_rag
 from app.evaluator import evaluate_answer
+from app.observability import langfuse
+
 
 
 with open(
@@ -20,12 +22,25 @@ for item in evaluation_data:
 
     expected_answer = item["expected_answer"]
 
-    generated_answer = ask_rag(question)
+    # Run RAG and capture trace
+    rag_result = ask_rag(question)
+
+    generated_answer = rag_result["answer"]
+
+    trace = rag_result["trace"]
+
 
     evaluation = evaluate_answer(
         question,
         expected_answer,
         generated_answer
+    )
+
+    # Send evaluation to Langfuse
+    trace.score(
+        name="answer_quality",
+        value=evaluation["score"],
+        comment=evaluation["reason"]
     )
 
     results.append(

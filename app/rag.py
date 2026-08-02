@@ -92,9 +92,12 @@ Question:
             }
         )
 
+    logger.info(
+        "Response generated successfully"
+    )
 
-    return answer
+    return {
+        "answer": answer,
+        "trace": trace
+    }
 
-logger.info(
-    "Response generated successfully"
-)
