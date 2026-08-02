@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from app.rag import ask_rag
 from app.schemas import QuestionRequest, AnswerResponse
+from app.guardrails import check_input_guardrail
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -32,11 +33,27 @@ def ask_question(request: QuestionRequest):
     )
 
     try:
-        answer = ask_rag(request.question)
 
+        guardrail_result = check_input_guardrail(
+            request.question
+        )
+
+        if not guardrail_result["allowed"]:
+
+            logger.warning(
+                "Blocked request: %s",
+                request.question
+            )
+
+            return AnswerResponse(
+                answer=guardrail_result["reason"]
+            )
+
+
+        result  = ask_rag(request.question)
         logger.info("RAG response generated successfully")
 
-        return AnswerResponse(answer=answer)
+        return AnswerResponse(answer=result["answer"])
 
     except Exception as e:
         logger.error(
