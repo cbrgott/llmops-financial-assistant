@@ -69,7 +69,8 @@ vector_store = QdrantVectorStore.from_documents(
     documents=chunks,
     embedding=embedding_model,
     url = QDRANT_URL,
-    collection_name="financial_documents"
+    collection_name="financial_documents",
+    timeout=60
 )
 
 print("Embeddings created and stored in Qdrant!")
