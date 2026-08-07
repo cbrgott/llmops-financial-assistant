@@ -1,11 +1,17 @@
 from app.observability import langfuse
 
-observation = langfuse.start_observation(
-    name="test-observation"
-)
 
-print(observation)
+def test_langfuse_connection():
 
-langfuse.shutdown()
+    observation = langfuse.start_observation(
+        name="test-observation"
+    )
 
-print("Done")
+    print(observation)
+
+    assert observation is not None
+
+    langfuse.shutdown()
+    
+if __name__ == "__main__":
+    test_langfuse_connection()
