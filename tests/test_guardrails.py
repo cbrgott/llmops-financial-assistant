@@ -17,3 +17,11 @@ def test_blocked_question():
     )
 
     assert result["allowed"] is False
+    
+if __name__ == "__main__":
+
+    test_allowed_question()
+    print("Allowed question passed")
+
+    test_blocked_question()
+    print("Blocked question passed")

@@ -4,7 +4,7 @@ from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_qdrant import QdrantVectorStore
-
+import os
 
 # -----------------------------
 # 1. Load PDF
@@ -59,10 +59,16 @@ print("Embedding model loaded!")
 
 print("\nCreating Qdrant vector database...")
 
+
+QDRANT_URL = os.getenv(
+    "QDRANT_URL",
+    "http://localhost:6333"
+)
+
 vector_store = QdrantVectorStore.from_documents(
     documents=chunks,
     embedding=embedding_model,
-    path="qdrant_storage",
+    url = QDRANT_URL,
     collection_name="financial_documents"
 )
 
