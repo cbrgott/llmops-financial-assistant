@@ -9,7 +9,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY app ./app
 COPY data ./data
 COPY tests ./tests
-COPY qdrant_storage ./qdrant_storage
 
 EXPOSE 8000
 
