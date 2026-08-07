@@ -58,6 +58,7 @@ print("Embedding model loaded!")
 # -----------------------------
 
 from qdrant_client import QdrantClient
+import httpx
 
 QDRANT_URL = os.getenv(
     "QDRANT_URL",
@@ -66,21 +67,20 @@ QDRANT_URL = os.getenv(
 
 print("QDRANT_URL =", QDRANT_URL)
 
-import requests
-
-print("Testing Qdrant URL:", os.getenv("QDRANT_URL"))
+# Direct HTTP test
+print("Testing Qdrant URL:", QDRANT_URL)
 
 try:
-    response = requests.get(
-        os.getenv("QDRANT_URL"),
-        timeout=10
+    response = httpx.get(
+        f"{QDRANT_URL}/collections",
+        timeout=30
     )
-    print("Qdrant HTTP status:", response.status_code)
-    print("Qdrant response:", response.text[:500])
+    print("HTTPX status:", response.status_code)
+    print("HTTPX response:", response.text[:1000])
 except Exception as e:
-    print("Qdrant connectivity error:", repr(e))
+    print("HTTPX connectivity error:", repr(e))
 
-
+# Qdrant client test
 client = QdrantClient(
     url=QDRANT_URL,
     timeout=120,
