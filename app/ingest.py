@@ -76,9 +76,9 @@ print("Qdrant connection OK!")
 vector_store = QdrantVectorStore.from_documents(
     documents=chunks,
     embedding=embedding_model,
-    client=client,
+    url=QDRANT_URL,
     collection_name="financial_documents",
-    timeout=60
+    timeout=120
 )
 
 print("Embeddings created and stored in Qdrant!")
