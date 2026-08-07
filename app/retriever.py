@@ -1,5 +1,6 @@
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_qdrant import QdrantVectorStore
+import os
 
 
 # -----------------------------
@@ -15,11 +16,19 @@ embedding_model = HuggingFaceEmbeddings(
 # Connect to existing Qdrant database
 # -----------------------------
 
+QDRANT_URL = os.getenv(
+    "QDRANT_URL",
+    "http://localhost:6333"
+)
+
+
 vector_store = QdrantVectorStore.from_existing_collection(
     collection_name="financial_documents",
-    path="qdrant_storage",
+    url=QDRANT_URL,
     embedding=embedding_model
 )
+
+
 
 
 # -----------------------------
