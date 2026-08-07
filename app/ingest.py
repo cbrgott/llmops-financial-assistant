@@ -68,6 +68,8 @@ print("QDRANT_URL =", QDRANT_URL)
 
 client = QdrantClient(
     url=QDRANT_URL,
+    https=True,
+    prefer_grpc=False,
     timeout=120
 )
 
