@@ -64,6 +64,8 @@ QDRANT_URL = os.getenv(
     "http://localhost:6333"
 )
 
+print("QDRANT_URL =", QDRANT_URL)
+
 client = QdrantClient(
     url=QDRANT_URL,
     timeout=120
