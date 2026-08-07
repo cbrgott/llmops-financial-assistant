@@ -83,7 +83,8 @@ except Exception as e:
 
 client = QdrantClient(
     url=QDRANT_URL,
-    timeout=120
+    timeout=120,
+    prefer_grpc=False
 )
 
 print("Testing Qdrant connection...")
