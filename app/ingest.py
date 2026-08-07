@@ -66,6 +66,21 @@ QDRANT_URL = os.getenv(
 
 print("QDRANT_URL =", QDRANT_URL)
 
+import requests
+
+print("Testing Qdrant URL:", os.getenv("QDRANT_URL"))
+
+try:
+    response = requests.get(
+        os.getenv("QDRANT_URL"),
+        timeout=10
+    )
+    print("Qdrant HTTP status:", response.status_code)
+    print("Qdrant response:", response.text[:500])
+except Exception as e:
+    print("Qdrant connectivity error:", repr(e))
+
+
 client = QdrantClient(
     url=QDRANT_URL,
     timeout=120
