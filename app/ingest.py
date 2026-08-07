@@ -56,9 +56,8 @@ print("Embedding model loaded!")
 # -----------------------------
 # 4. Store embeddings in Qdrant
 # -----------------------------
-
-from qdrant_client import QdrantClient
-import httpx
+import os
+import requests
 
 QDRANT_URL = os.getenv(
     "QDRANT_URL",
@@ -67,40 +66,25 @@ QDRANT_URL = os.getenv(
 
 print("QDRANT_URL =", QDRANT_URL)
 
-# Direct HTTP test
 print("Testing Qdrant URL:", QDRANT_URL)
 
 try:
-    response = httpx.get(
-        f"{QDRANT_URL}/collections",
-        timeout=30
+    response = requests.get(
+        QDRANT_URL,
+        timeout=10
     )
-    print("HTTPX status:", response.status_code)
-    print("HTTPX response:", response.text[:1000])
+    print("Qdrant HTTP status:", response.status_code)
+    print("Qdrant response:", response.text[:500])
 except Exception as e:
-    print("HTTPX connectivity error:", repr(e))
+    print("Qdrant connectivity error:", repr(e))
 
-# Qdrant client test
-client = QdrantClient(
-    url=QDRANT_URL,
-    timeout=120,
-    prefer_grpc=False
-)
-
-print("Testing Qdrant connection...")
-print(client.get_collections())
-print("Qdrant connection OK!")
+print("Creating Qdrant vector store...")
 
 vector_store = QdrantVectorStore.from_documents(
     documents=chunks,
     embedding=embedding_model,
     url=QDRANT_URL,
     collection_name="financial_documents",
-    timeout=120
 )
 
 print("Embeddings created and stored in Qdrant!")
-
-client.close()
-
-print("Qdrant closed successfully!")
