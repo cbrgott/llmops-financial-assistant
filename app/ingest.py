@@ -68,16 +68,25 @@ QDRANT_URL = os.getenv(
 
 print("QDRANT_URL =", QDRANT_URL)
 
-# Verify Qdrant is reachable
+print("Testing Qdrant write operation...")
+
 try:
-    response = requests.get(
-        QDRANT_URL,
-        timeout=10
+    response = requests.put(
+        f"{QDRANT_URL}/collections/financial_documents",
+        json={
+            "vectors": {
+                "size": 384,
+                "distance": "Cosine"
+            }
+        },
+        timeout=30
     )
-    print("Qdrant HTTP status:", response.status_code)
-    print("Qdrant response:", response.text[:500])
+
+    print("Qdrant collection creation status:", response.status_code)
+    print("Qdrant collection response:", response.text[:1000])
+
 except Exception as e:
-    print("Qdrant connectivity error:", repr(e))
+    print("Qdrant collection creation error:", repr(e))
 
 print("Creating Qdrant vector store...")
 
@@ -88,5 +97,3 @@ vector_store = QdrantVectorStore.from_documents(
     collection_name="financial_documents",
     timeout=120
 )
-
-print("Embeddings created and stored in Qdrant!")
