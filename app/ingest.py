@@ -1,10 +1,11 @@
 from pathlib import Path
+import os
+import requests
 
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_qdrant import QdrantVectorStore
-import os
+
 
 # -----------------------------
 # 1. Load PDF
@@ -13,7 +14,6 @@ import os
 pdf_path = Path("data") / "2021ESG.pdf"
 
 loader = PyPDFLoader(str(pdf_path))
-
 documents = loader.load()
 
 print(f"Pages loaded : {len(documents)}")
@@ -31,7 +31,6 @@ text_splitter = RecursiveCharacterTextSplitter(
 chunks = text_splitter.split_documents(documents)
 
 print(f"Chunks created: {len(chunks)}")
-
 
 print("\nFirst chunk:")
 print(chunks[0].page_content)
@@ -54,46 +53,144 @@ print("Embedding model loaded!")
 
 
 # -----------------------------
-# 4. Store embeddings in Qdrant
+# 4. Qdrant configuration
 # -----------------------------
-
-import os
-import requests
 
 QDRANT_URL = os.getenv(
     "QDRANT_URL",
     "http://localhost:6333"
 )
 
+COLLECTION_NAME = "financial_documents"
 
 print("QDRANT_URL =", QDRANT_URL)
 
-print("Testing Qdrant write operation...")
+
+# -----------------------------
+# 5. Test Qdrant connection
+# -----------------------------
+
+print("Testing Qdrant connection...")
 
 try:
-    response = requests.put(
-        f"{QDRANT_URL}/collections/financial_documents",
-        json={
-            "vectors": {
-                "size": 384,
-                "distance": "Cosine"
-            }
-        },
+    response = requests.get(
+        QDRANT_URL,
         timeout=30
     )
 
-    print("Qdrant collection creation status:", response.status_code)
-    print("Qdrant collection response:", response.text[:1000])
+    print("Qdrant HTTP status:", response.status_code)
+    print("Qdrant response:", response.text[:500])
+
+    response.raise_for_status()
 
 except Exception as e:
-    print("Qdrant collection creation error:", repr(e))
+    print("Qdrant connectivity error:", repr(e))
+    raise
 
-print("Creating Qdrant vector store...")
 
-vector_store = QdrantVectorStore.from_documents(
-    documents=chunks,
-    embedding=embedding_model,
-    url=QDRANT_URL,
-    collection_name="financial_documents",
-    timeout=120
-)
+# -----------------------------
+# 6. Create collection if needed
+# -----------------------------
+
+print(f"Checking Qdrant collection: {COLLECTION_NAME}")
+
+try:
+    response = requests.get(
+        f"{QDRANT_URL}/collections/{COLLECTION_NAME}",
+        timeout=30
+    )
+
+    if response.status_code == 200:
+        print("Collection already exists.")
+
+    elif response.status_code == 404:
+        print("Collection does not exist. Creating it...")
+
+        response = requests.put(
+            f"{QDRANT_URL}/collections/{COLLECTION_NAME}",
+            json={
+                "vectors": {
+                    "size": 384,
+                    "distance": "Cosine"
+                }
+            },
+            timeout=30
+        )
+
+        print("Collection creation status:", response.status_code)
+        print("Collection creation response:", response.text[:500])
+
+        response.raise_for_status()
+
+        print("Collection created successfully!")
+
+    else:
+        print("Unexpected collection status:", response.status_code)
+        print(response.text[:500])
+        response.raise_for_status()
+
+except Exception as e:
+    print("Collection error:", repr(e))
+    raise
+
+
+# -----------------------------
+# 7. Create embeddings
+# -----------------------------
+
+print(f"Creating embeddings for {len(chunks)} chunks...")
+
+texts = [chunk.page_content for chunk in chunks]
+
+embeddings = embedding_model.embed_documents(texts)
+
+print(f"Embeddings created: {len(embeddings)}")
+print(f"Embedding dimension: {len(embeddings[0])}")
+
+
+# -----------------------------
+# 8. Upload vectors to Qdrant
+# -----------------------------
+
+print("Uploading vectors to Qdrant...")
+
+batch_size = 50
+
+for start in range(0, len(chunks), batch_size):
+
+    end = min(start + batch_size, len(chunks))
+
+    points = []
+
+    for i in range(start, end):
+
+        points.append({
+            "id": i,
+            "vector": embeddings[i],
+            "payload": {
+                "page_content": chunks[i].page_content,
+                "metadata": chunks[i].metadata
+            }
+        })
+
+    response = requests.put(
+        f"{QDRANT_URL}/collections/{COLLECTION_NAME}/points",
+        params={"wait": "true"},
+        json={
+            "points": points
+        },
+        timeout=120
+    )
+
+    print(
+        f"Uploaded chunks {start + 1}-{end}: "
+        f"HTTP {response.status_code}"
+    )
+
+    print(response.text[:300])
+
+    response.raise_for_status()
+
+
+print("Embeddings created and stored in Qdrant!")
+print("Ingestion completed successfully!")
