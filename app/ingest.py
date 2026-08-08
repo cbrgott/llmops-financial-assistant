@@ -89,50 +89,52 @@ except Exception as e:
 
 
 # -----------------------------
-# 6. Create collection if needed
+# 6. Recreate collection
 # -----------------------------
 
-print(f"Checking Qdrant collection: {COLLECTION_NAME}")
+print(f"Deleting existing Qdrant collection: {COLLECTION_NAME}")
 
 try:
-    response = requests.get(
+    response = requests.delete(
         f"{QDRANT_URL}/collections/{COLLECTION_NAME}",
         timeout=30
     )
 
-    if response.status_code == 200:
-        print("Collection already exists.")
+    print("Collection deletion status:", response.status_code)
+    print("Collection deletion response:", response.text[:500])
 
-    elif response.status_code == 404:
-        print("Collection does not exist. Creating it...")
-
-        response = requests.put(
-            f"{QDRANT_URL}/collections/{COLLECTION_NAME}",
-            json={
-                "vectors": {
-                    "size": 384,
-                    "distance": "Cosine"
-                }
-            },
-            timeout=30
-        )
-
-        print("Collection creation status:", response.status_code)
-        print("Collection creation response:", response.text[:500])
-
-        response.raise_for_status()
-
-        print("Collection created successfully!")
-
-    else:
-        print("Unexpected collection status:", response.status_code)
-        print(response.text[:500])
+    if response.status_code not in [200, 404]:
         response.raise_for_status()
 
 except Exception as e:
-    print("Collection error:", repr(e))
+    print("Collection deletion error:", repr(e))
     raise
 
+
+print(f"Creating fresh Qdrant collection: {COLLECTION_NAME}")
+
+try:
+    response = requests.put(
+        f"{QDRANT_URL}/collections/{COLLECTION_NAME}",
+        json={
+            "vectors": {
+                "size": 384,
+                "distance": "Cosine"
+            }
+        },
+        timeout=30
+    )
+
+    print("Collection creation status:", response.status_code)
+    print("Collection creation response:", response.text[:500])
+
+    response.raise_for_status()
+
+    print("Collection created successfully!")
+
+except Exception as e:
+    print("Collection creation error:", repr(e))
+    raise
 
 # -----------------------------
 # 7. Create embeddings
