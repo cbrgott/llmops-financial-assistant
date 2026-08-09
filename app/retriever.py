@@ -1,67 +1,49 @@
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_qdrant import QdrantVectorStore
+from langchain_core.documents import Document
 import os
-
-
-# -----------------------------
-# Load embedding model
-# -----------------------------
+import requests
 
 embedding_model = HuggingFaceEmbeddings(
     model_name="sentence-transformers/all-MiniLM-L6-v2"
 )
-
-
-# -----------------------------
-# Connect to existing Qdrant database
-# -----------------------------
 
 QDRANT_URL = os.getenv(
     "QDRANT_URL",
     "http://localhost:6333"
 )
 
-print(f"QDRANT_URL = {QDRANT_URL}")
-
-import requests
+COLLECTION_NAME = "financial_documents"
 
 print(f"QDRANT_URL = {QDRANT_URL}")
 
-try:
-    r = requests.get(QDRANT_URL, timeout=10)
-    print(f"QDRANT TEST STATUS: {r.status_code}")
-    print(f"QDRANT TEST RESPONSE: {r.text[:500]}")
-except Exception as e:
-    print(f"QDRANT TEST FAILED: {type(e).__name__}: {e}")
-
-vector_store = QdrantVectorStore.from_existing_collection(
-    collection_name="financial_documents",
-    url=QDRANT_URL,
-    embedding=embedding_model
-)
-
-
-
-
-# -----------------------------
-# Retrieval function
-# -----------------------------
 
 def retrieve_documents(question: str, k: int = 3):
-    """
-    Retrieve the most relevant document chunks from Qdrant.
+    query_vector = embedding_model.embed_query(question)
 
-    Args:
-        question: User question.
-        k: Number of chunks to retrieve.
-
-    Returns:
-        List of relevant documents.
-    """
-
-    results = vector_store.similarity_search(
-        question,
-        k=k
+    response = requests.post(
+        f"{QDRANT_URL}/collections/{COLLECTION_NAME}/points/search",
+        json={
+            "vector": query_vector,
+            "limit": k,
+            "with_payload": True
+        },
+        timeout=30
     )
 
-    return results
+    response.raise_for_status()
+
+    results = response.json()["result"]
+
+    documents = []
+
+    for result in results:
+        payload = result["payload"]
+
+        documents.append(
+            Document(
+                page_content=payload["page_content"],
+                metadata=payload.get("metadata", {})
+            )
+        )
+
+    return documents
