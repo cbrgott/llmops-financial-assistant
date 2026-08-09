@@ -3,6 +3,7 @@ from app.rag import ask_rag
 from app.schemas import QuestionRequest, AnswerResponse
 from app.guardrails import check_input_guardrail
 from app.observability import langfuse
+from app.agent import run_agent
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -76,4 +77,52 @@ def ask_question(request: QuestionRequest):
         raise HTTPException(
             status_code=500,
             detail="RAG service unavailable"
+        )
+@app.post("/agent", response_model=AnswerResponse)
+def ask_agent(request: QuestionRequest):
+
+    logger.info(
+        "Received agent question: %s",
+        request.question
+    )
+
+    try:
+
+        guardrail_result = check_input_guardrail(
+            request.question
+        )
+
+        if not guardrail_result["allowed"]:
+
+            logger.warning(
+                "Blocked agent request: %s",
+                request.question
+            )
+
+            return AnswerResponse(
+                answer=guardrail_result["reason"]
+            )
+
+        answer = run_agent(
+            request.question
+        )
+
+        logger.info(
+            "Foundry agent response generated successfully"
+        )
+
+        return AnswerResponse(
+            answer=answer
+        )
+
+    except Exception as e:
+
+        logger.error(
+            "Foundry agent request failed: %s",
+            str(e)
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Agent service unavailable"
         )
