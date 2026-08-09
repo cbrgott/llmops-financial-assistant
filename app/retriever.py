@@ -22,6 +22,18 @@ QDRANT_URL = os.getenv(
 )
 
 print(f"QDRANT_URL = {QDRANT_URL}")
+
+import requests
+
+print(f"QDRANT_URL = {QDRANT_URL}")
+
+try:
+    r = requests.get(QDRANT_URL, timeout=10)
+    print(f"QDRANT TEST STATUS: {r.status_code}")
+    print(f"QDRANT TEST RESPONSE: {r.text[:500]}")
+except Exception as e:
+    print(f"QDRANT TEST FAILED: {type(e).__name__}: {e}")
+
 vector_store = QdrantVectorStore.from_existing_collection(
     collection_name="financial_documents",
     url=QDRANT_URL,
