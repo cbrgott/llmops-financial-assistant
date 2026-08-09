@@ -47,6 +47,17 @@ jobs:
               "tenantId": "${{ secrets.AZURE_TENANT_ID }}"
             }
 
+      - name: Install Container Apps extension
+        run: |
+          az extension add --name containerapp --upgrade
+
+      - name: Verify Azure context
+        run: |
+          az account show -o table
+          az containerapp list \
+            --resource-group demo-container \
+            -o table
+
       - name: Deploy Financial Assistant API
         run: |
           az containerapp update \
