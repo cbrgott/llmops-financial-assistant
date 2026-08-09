@@ -21,7 +21,7 @@ QDRANT_URL = os.getenv(
     "http://localhost:6333"
 )
 
-
+print(f"QDRANT_URL = {QDRANT_URL}")
 vector_store = QdrantVectorStore.from_existing_collection(
     collection_name="financial_documents",
     url=QDRANT_URL,
