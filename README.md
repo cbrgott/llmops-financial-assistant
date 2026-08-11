@@ -129,7 +129,7 @@ The project can run in three ways:
 
 ## 1. Local Python
 
-Create the virtual environment:
+Create and activate the virtual environment:
 
 ```powershell
 python -m venv .venv
@@ -170,29 +170,35 @@ Start the API:
 uvicorn app.api:app --reload
 ```
 
-Open:
+Access the API:
 
 ```text
-http://localhost:8000/docs
+API:     http://localhost:8000
+Swagger: http://localhost:8000/docs
+Health:  http://localhost:8000/health
 ```
 
 ---
 
 ## 2. Docker Compose
 
-Build and start the full local stack:
+Build and start the complete local stack:
 
 ```powershell
 docker compose up --build
 ```
 
-Or run in the background:
+Docker Compose runs:
 
-```powershell
-docker compose up -d --build
+```text
+Qdrant
+ ↓
+Ingestion container
+ ↓
+API container
 ```
 
-Check containers:
+Check the containers:
 
 ```powershell
 docker compose ps -a
@@ -206,26 +212,27 @@ financial-assistant-ingest   Exited (0)
 qdrant                       Up
 ```
 
+`financial-assistant-ingest` exits after successfully populating Qdrant.
+
+Inside the Docker network, the API and ingestion containers connect to Qdrant using:
+
+```text
+QDRANT_URL=http://qdrant:6333
+```
+
+Access the application from the host:
+
+```text
+API:              http://localhost:8000
+Swagger:          http://localhost:8000/docs
+Health:           http://localhost:8000/health
+Qdrant Dashboard: http://localhost:6333/dashboard
+```
+
 Stop the stack:
 
 ```powershell
 docker compose down
-```
-
-Docker Compose runs:
-
-```text
-Qdrant
- ↓
-Ingestion container
- ↓
-API container
-```
-
-The API and ingestion containers use:
-
-```text
-QDRANT_URL=http://qdrant:6333
 ```
 
 ---
@@ -234,7 +241,7 @@ QDRANT_URL=http://qdrant:6333
 
 Azure deployment is automated through GitHub Actions.
 
-Commit and push:
+Commit and push to `master`:
 
 ```powershell
 git add .
@@ -242,7 +249,7 @@ git commit -m "Update application"
 git push origin master
 ```
 
-The pipeline runs:
+The deployment pipeline runs:
 
 ```text
 Push to master
@@ -255,9 +262,29 @@ CD
  ↓
 Build Docker Image
  ↓
+Tag Image with Git SHA
+ ↓
 Push to GHCR
  ↓
 Deploy to Azure Container Apps
+```
+
+Get the public API hostname:
+
+```powershell
+az containerapp show `
+  --name financial-assistant-api `
+  --resource-group demo-container `
+  --query "properties.configuration.ingress.fqdn" `
+  -o tsv
+```
+
+Access the deployed application using the returned hostname:
+
+```text
+API:     https://<azure-api-fqdn>
+Swagger: https://<azure-api-fqdn>/docs
+Health:  https://<azure-api-fqdn>/health
 ```
 
 Check API revisions:
@@ -288,13 +315,15 @@ git rev-parse HEAD
 
 The Git SHA should match the Docker image tag deployed in Azure.
 
-Run the Azure ingestion job when the vector database needs to be rebuilt:
+Run the Azure ingestion job when the vector database needs to be initially populated or rebuilt:
 
 ```powershell
 az containerapp job start `
   --name financial-assistant-ingest `
   --resource-group demo-container
 ```
+
+The ingestion job is not required for normal user requests.
 
 ---
 
@@ -387,6 +416,8 @@ Login to Azure
 Update financial-assistant-api
  ↓
 Update financial-assistant-mcp
+ ↓
+New Azure Container App revisions
 ```
 
 ---
@@ -409,6 +440,35 @@ Azure
 │
 └── Azure Container Apps Job
     └── financial-assistant-ingest
+```
+
+---
+
+## Deployment Summary
+
+```text
+LOCAL PYTHON
+Python + Local Qdrant
+        ↓
+http://localhost:8000
+
+
+DOCKER COMPOSE
+API + Ingest + Qdrant containers
+        ↓
+http://localhost:8000
+
+
+AZURE
+Git Push
+   ↓
+CI/CD
+   ↓
+GHCR
+   ↓
+Azure Container Apps
+   ↓
+https://<azure-api-fqdn>
 ```
 
 ---
